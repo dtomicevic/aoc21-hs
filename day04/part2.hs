@@ -31,19 +31,24 @@ getWin = listToMaybe . dropWhile (not . isWin)
 score :: Int -> [[Int]] -> Int
 score n = (n *) . sum . filter (>= 0) . concat
 
+
+
 main :: IO ()
 main = do
   ss <- filter (/= "") . lines <$> getContents
   let xs = map read . splitOn "," . head $ ss :: [Int]
   let bs = chunksOf 5 . map (map read . words) . tail $ ss :: [[[Int]]]
 
-  let win =
-        uncurry score
-          . second fromJust
-          . head
-          . dropWhile (isNothing . snd)
-          . zipWith (curry (second getWin)) xs
+  let moves = zipWith (,) xs
           . tail
           $ scanl (flip mark) bs xs
 
-  print win
+  -- let win =
+  --       uncurry score
+  --         . second fromJust
+  --         . head
+  --         . dropWhile (isNothing . snd)
+  --         $ moves
+
+
+  print moves
