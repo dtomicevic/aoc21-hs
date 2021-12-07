@@ -1,7 +1,8 @@
 import Control.Applicative (liftA2)
-import Data.List (transpose)
+import Data.List (transpose, minimumBy)
 import Data.Maybe (listToMaybe, isNothing, fromJust)
 import Control.Arrow (second)
+import Data.Function (on)
 -- import Data.List.Split (splitOn, chunksOf)
 
 -- don't know how to import a lib into a single file
@@ -25,13 +26,11 @@ isWin = liftA2 (||) (any isWin5) (any isWin5 . transpose)
 mark :: Int -> [[[Int]]] -> [[[Int]]]
 mark n = map (map (map (\x -> if x == n then -1 else x)))
 
-getWin :: [[[Int]]] -> Maybe [[Int]]
-getWin = listToMaybe . dropWhile (not . isWin)
-
 score :: Int -> [[Int]] -> Int
 score n = (n *) . sum . filter (>= 0) . concat
 
-
+scr :: [[Int]] -> Int
+scr = sum . filter (>= 0) . concat
 
 main :: IO ()
 main = do
@@ -39,16 +38,13 @@ main = do
   let xs = map read . splitOn "," . head $ ss :: [Int]
   let bs = chunksOf 5 . map (map read . words) . tail $ ss :: [[[Int]]]
 
-  let moves = zipWith (,) xs
+  let win =
+        uncurry score
+          . head
+          . minimumBy (compare `on` length)
+          . map (dropWhile (not . isWin . snd) . zip xs)
+          . transpose
           . tail
           $ scanl (flip mark) bs xs
 
-  -- let win =
-  --       uncurry score
-  --         . second fromJust
-  --         . head
-  --         . dropWhile (isNothing . snd)
-  --         $ moves
-
-
-  print moves
+  print win
